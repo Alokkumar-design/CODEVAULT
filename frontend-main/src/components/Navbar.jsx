@@ -1,9 +1,10 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import "./navbar.css";
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   return (
     <nav>
@@ -51,7 +52,7 @@ const Navbar = () => {
           className="btn-logout"
           onClick={() => {
             localStorage.clear();
-            window.location.href = "/auth";
+            navigate("/auth");
           }}
         >
           Sign out

@@ -7,19 +7,21 @@ import { Box, Button } from "@primer/react";
 import "./auth.css";
 
 import logo from "../../assets/github-mark-white.svg";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const Login = () => {
-  // useEffect(() => {
-  //   localStorage.removeItem("token");
-  //   localStorage.removeItem("userId");
-  //   setCurrentUser(null);
-  // });
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const { setCurrentUser } = useAuth();
+  const navigate = useNavigate();
+
+  const handleGuestLogin = () => {
+    localStorage.setItem("token", "demo-token-guest");
+    localStorage.setItem("userId", "demo-user");
+    setCurrentUser("demo-user");
+    navigate("/");
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -36,11 +38,10 @@ const Login = () => {
 
       setCurrentUser(res.data.userId);
       setLoading(false);
-
-      window.location.href = "/";
+      navigate("/");
     } catch (err) {
-      console.error(err);
-      alert("Login Failed!");
+      console.warn("Backend unavailable, continuing in demo mode.");
+      handleGuestLogin();
       setLoading(false);
     }
   };
@@ -94,6 +95,15 @@ const Login = () => {
             onClick={handleLogin}
           >
             {loading ? "Loading..." : "Login"}
+          </Button>
+
+          <Button
+            variant="default"
+            className="login-btn"
+            style={{ backgroundColor: "#238636", color: "white", borderColor: "#2ea043" }}
+            onClick={handleGuestLogin}
+          >
+            🚀 Explore Demo as Guest
           </Button>
         </div>
         <div className="pass-box">

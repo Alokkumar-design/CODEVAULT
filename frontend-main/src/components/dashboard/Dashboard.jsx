@@ -27,6 +27,55 @@ const Dashboard = () => {
     Go: "#00ADD8",
   };
 
+  const defaultDemoRepos = [
+    {
+      _id: "demo-repo-1",
+      name: "CODEVAULT",
+      description: "A GitHub-like version control system built with Node.js and MongoDB, supporting repositories, commits, branches, and collaboration.",
+      visibility: true,
+      language: "JavaScript",
+    },
+    {
+      _id: "demo-repo-2",
+      name: "distributed-snapshot-engine",
+      description: "Low-level staging and commit tree hashing algorithm with custom .apnaGit directory layout.",
+      visibility: true,
+      language: "Node.js",
+    },
+    {
+      _id: "demo-repo-3",
+      name: "aws-s3-repository-sync",
+      description: "Automated remote repository bundle upload and streaming backup service.",
+      visibility: true,
+      language: "TypeScript",
+    },
+    {
+      _id: "demo-repo-4",
+      name: "react-activity-heatmaps",
+      description: "GitHub-style year-round commit frequency and collaboration heatmap visualizer.",
+      visibility: true,
+      language: "React",
+    },
+  ];
+
+  const defaultExploreRepos = [
+    {
+      _id: "exp-1",
+      name: "awesome-developer-portfolio",
+      description: "Modern portfolio template for full-stack software engineers.",
+    },
+    {
+      _id: "exp-2",
+      name: "mini-git-engine",
+      description: "A lightweight implementation of Git written in pure JavaScript.",
+    },
+    {
+      _id: "exp-3",
+      name: "mongodb-sharding-cluster",
+      description: "Production-ready Docker compose configuration for replica sets.",
+    },
+  ];
+
   useEffect(() => {
     const userId = localStorage.getItem("userId") || "mock-user";
 
@@ -37,31 +86,51 @@ const Dashboard = () => {
         );
         const data = await response.json();
         const repos = data.repositories || [];
-        setRepositories(repos);
-
-        // Initialize star counts
-        const initialStars = {};
-        repos.forEach((r, idx) => {
-          initialStars[r._id] = {
-            starred: idx === 0,
-            count: (idx + 1) * 7,
-            lang: idx === 1 ? "Python" : idx === 2 ? "TypeScript" : "JavaScript",
-          };
-        });
-        setStars(initialStars);
+        if (repos.length > 0) {
+          setRepositories(repos);
+          const initialStars = {};
+          repos.forEach((r, idx) => {
+            initialStars[r._id] = {
+              starred: idx === 0,
+              count: (idx + 1) * 7,
+              lang: idx === 1 ? "Python" : idx === 2 ? "TypeScript" : "JavaScript",
+            };
+          });
+          setStars(initialStars);
+          return;
+        }
       } catch (err) {
-        console.error("Error while fetching repositories: ", err);
+        console.warn("Backend unavailable, loading local demo repositories.");
       }
+
+      // Fallback for live demo
+      const savedRepos = localStorage.getItem("codevault_repos");
+      const initialRepos = savedRepos ? JSON.parse(savedRepos) : defaultDemoRepos;
+      setRepositories(initialRepos);
+
+      const initialStars = {};
+      initialRepos.forEach((r, idx) => {
+        initialStars[r._id] = {
+          starred: idx === 0,
+          count: (idx + 1) * 7 + 3,
+          lang: r.language || (idx === 1 ? "Python" : idx === 2 ? "TypeScript" : "JavaScript"),
+        };
+      });
+      setStars(initialStars);
     };
 
     const fetchSuggestedRepositories = async () => {
       try {
         const response = await fetch(`http://localhost:3002/repo/all`);
         const data = await response.json();
-        setSuggestedRepositories(data || []);
+        if (Array.isArray(data) && data.length > 0) {
+          setSuggestedRepositories(data);
+          return;
+        }
       } catch (err) {
-        console.error("Error while fetching suggested repositories: ", err);
+        // Fallback for explore
       }
+      setSuggestedRepositories(defaultExploreRepos);
     };
 
     fetchRepositories();
@@ -115,7 +184,9 @@ const Dashboard = () => {
 
       const data = await response.json();
       if (data.repository) {
-        setRepositories([data.repository, ...repositories]);
+        const updated = [data.repository, ...repositories];
+        setRepositories(updated);
+        localStorage.setItem("codevault_repos", JSON.stringify(updated));
         setStars((prev) => ({
           ...prev,
           [data.repository._id]: {
@@ -124,16 +195,39 @@ const Dashboard = () => {
             lang: language,
           },
         }));
+        setName("");
+        setDescription("");
+        setShowCreateForm(false);
+        return;
       }
-      setName("");
-      setDescription("");
-      setShowCreateForm(false);
     } catch (err) {
-      console.error("Error creating repository:", err);
-      alert("Failed to create repository");
+      console.warn("Backend not connected, saving repository locally for demo.");
     } finally {
       setIsSubmitting(false);
     }
+
+    // Interactive Demo Fallback
+    const newRepo = {
+      _id: "repo-" + Date.now(),
+      name: name.trim(),
+      description: description.trim() || "Created in CodeVault demo session.",
+      visibility: true,
+      language: language,
+    };
+    const updated = [newRepo, ...repositories];
+    setRepositories(updated);
+    localStorage.setItem("codevault_repos", JSON.stringify(updated));
+    setStars((prev) => ({
+      ...prev,
+      [newRepo._id]: {
+        starred: false,
+        count: 0,
+        lang: language,
+      },
+    }));
+    setName("");
+    setDescription("");
+    setShowCreateForm(false);
   };
 
   // Handle Delete Repository
@@ -146,10 +240,12 @@ const Dashboard = () => {
       await fetch(`http://localhost:3002/repo/delete/${repoId}`, {
         method: "DELETE",
       });
-      setRepositories(repositories.filter((repo) => repo._id !== repoId));
     } catch (err) {
-      console.error("Error deleting repository:", err);
+      console.warn("Backend offline, deleting repository from demo session.");
     }
+    const updated = repositories.filter((repo) => repo._id !== repoId);
+    setRepositories(updated);
+    localStorage.setItem("codevault_repos", JSON.stringify(updated));
   };
 
   const copyToClipboard = (cmd) => {
