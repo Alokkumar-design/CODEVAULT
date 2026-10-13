@@ -8,6 +8,8 @@
 [![AWS S3](https://img.shields.io/badge/AWS-S3-orange.svg)](https://aws.amazon.com/s3/)
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](LICENSE)
 
+> 🚀 **[Click here to view the Live Demo](https://alokkumar-design.github.io/CODEVAULT/)**
+
 **CodeVault** is a full-stack, distributed version control system simulating both the **Git CLI engine** and the **GitHub web collaboration platform**. 
 
 It features an internal snapshot engine in Node.js that tracks local file staging and commits inside a custom `.apnaGit` directory, streams remote backups to **AWS S3**, provides a **REST API** with MongoDB & JWT authentication, and renders a **React single-page application** with contribution activity heatmaps.
