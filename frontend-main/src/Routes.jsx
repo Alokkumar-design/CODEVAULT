@@ -18,7 +18,6 @@ const ProjectRoutes = () => {
   useEffect(() => {
     let userIdFromStorage = localStorage.getItem("userId");
 
-    // Automatically set a guest demo session for live GitHub Pages viewers
     if (!userIdFromStorage) {
       localStorage.setItem("userId", "guest-demo-user");
       localStorage.setItem("token", "guest-demo-token");
@@ -28,27 +27,19 @@ const ProjectRoutes = () => {
     if (userIdFromStorage && !currentUser) {
       setCurrentUser(userIdFromStorage);
     }
-
-    if (!userIdFromStorage && !["/auth", "/signup"].includes(location.pathname)) {
-      navigate("/auth");
-    }
-
-    if (userIdFromStorage && location.pathname === "/auth") {
-      navigate("/");
-    }
-  }, [currentUser, navigate, setCurrentUser, location.pathname]);
+  }, [currentUser, setCurrentUser]);
 
   let element = useRoutes([
     {
       path: "/",
+      element: <Dashboard />,
     },
     {
       path: "/repo",
       element: <Dashboard />,
     },
     {
-      path: "*",
-      element: <Dashboard />
+      path: "/repo/:id",
       element: <Dashboard />,
     },
     {
@@ -62,6 +53,10 @@ const ProjectRoutes = () => {
     {
       path: "/profile",
       element: <Profile />,
+    },
+    {
+      path: "*",
+      element: <Dashboard />,
     },
   ]);
 
