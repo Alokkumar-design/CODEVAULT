@@ -41,6 +41,14 @@ const ProjectRoutes = () => {
   let element = useRoutes([
     {
       path: "/",
+    },
+    {
+      path: "/repo",
+      element: <Dashboard />,
+    },
+    {
+      path: "*",
+      element: <Dashboard />
       element: <Dashboard />,
     },
     {
