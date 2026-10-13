@@ -1,68 +1,77 @@
 import React, { useEffect, useState } from "react";
 import HeatMap from "@uiw/react-heat-map";
 
-// Function to generate random activity
-const generateActivityData = (startDate, endDate) => {
+const generateRecentActivityData = () => {
   const data = [];
-  let currentDate = new Date(startDate);
-  const end = new Date(endDate);
+  const today = new Date();
+  const past = new Date();
+  past.setMonth(today.getMonth() - 5);
 
-  while (currentDate <= end) {
-    const count = Math.floor(Math.random() * 50);
+  let cur = new Date(past);
+  while (cur <= today) {
+    // Generate realistic contribution distribution
+    const rand = Math.random();
+    const count = rand > 0.5 ? Math.floor(Math.random() * 8) + 1 : 0;
     data.push({
-      date: currentDate.toISOString().split("T")[0], //YYY-MM-DD
-      count: count,
+      date: cur.toISOString().split("T")[0],
+      count,
     });
-    currentDate.setDate(currentDate.getDate() + 1);
+    cur.setDate(cur.getDate() + 1);
   }
-
-  return data;
-};
-
-const getPanelColors = (maxCount) => {
-  const colors = {};
-  for (let i = 0; i <= maxCount; i++) {
-    const greenValue = Math.floor((i / maxCount) * 255);
-    colors[i] = `rgb(0, ${greenValue}, 0)`;
-  }
-
-  return colors;
+  return { data, startDate: past };
 };
 
 const HeatMapProfile = () => {
   const [activityData, setActivityData] = useState([]);
-  const [panelColors, setPanelColors] = useState({});
+  const [startDate, setStartDate] = useState(new Date());
+
+  const panelColors = {
+    0: "#161b22",
+    1: "#0e4429",
+    2: "#006d32",
+    4: "#26a641",
+    8: "#39d353",
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      const startDate = "2001-01-01";
-      const endDate = "2001-01-31";
-      const data = generateActivityData(startDate, endDate);
-      setActivityData(data);
-
-      const maxCount = Math.max(...data.map((d) => d.count));
-      setPanelColors(getPanelColors(maxCount));
-    };
-
-    fetchData();
+    const { data, startDate } = generateRecentActivityData();
+    setActivityData(data);
+    setStartDate(startDate);
   }, []);
 
+  const totalContributions = activityData.reduce((acc, curr) => acc + curr.count, 0);
+
   return (
-    <div>
-      <h4>Recent Contributions</h4>
-      <HeatMap
-        className="HeatMapProfile"
-        style={{ maxWidth: "700px", height: "200px", color: "white" }}
-        value={activityData}
-        weekLabels={["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]}
-        startDate={new Date("2001-01-01")}
-        rectSize={15}
-        space={3}
-        rectProps={{
-          rx: 2.5,
-        }}
-        panelColors={panelColors}
-      />
+    <div style={{ background: "#161b22", border: "1px solid #30363d", borderRadius: "10px", padding: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+        <h4 style={{ margin: 0, fontSize: "14px", fontWeight: "600", color: "#f0f6fc" }}>
+          {totalContributions} contributions in the last 6 months
+        </h4>
+        <span style={{ fontSize: "11px", color: "#8b949e" }}>Contribution settings ▾</span>
+      </div>
+
+      <div style={{ overflowX: "auto" }}>
+        <HeatMap
+          style={{ color: "#8b949e" }}
+          value={activityData}
+          weekLabels={["", "Mon", "", "Wed", "", "Fri", ""]}
+          startDate={startDate}
+          rectSize={12}
+          space={3}
+          rectProps={{ rx: 2 }}
+          panelColors={panelColors}
+        />
+      </div>
+
+      <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: "6px", fontSize: "11px", color: "#8b949e", marginTop: "12px" }}>
+        <span>Less</span>
+        <span style={{ width: "10px", height: "10px", background: "#161b22", borderRadius: "2px", display: "inline-block", border: "1px solid #30363d" }}></span>
+        <span style={{ width: "10px", height: "10px", background: "#0e4429", borderRadius: "2px", display: "inline-block" }}></span>
+        <span style={{ width: "10px", height: "10px", background: "#006d32", borderRadius: "2px", display: "inline-block" }}></span>
+        <span style={{ width: "10px", height: "10px", background: "#26a641", borderRadius: "2px", display: "inline-block" }}></span>
+        <span style={{ width: "10px", height: "10px", background: "#39d353", borderRadius: "2px", display: "inline-block" }}></span>
+        <span>More</span>
+      </div>
     </div>
   );
 };

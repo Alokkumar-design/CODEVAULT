@@ -1,12 +1,9 @@
-const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-const http = require("http");
-const { Server } = require("socket.io");
-const mainRouter = require("./routes/main.router");
+// Node.js 22+ polyfill for legacy dependencies
+if (!require("buffer").SlowBuffer) {
+  require("buffer").SlowBuffer = class {};
+}
 
+const dotenv = require("dotenv");
 const yargs = require("yargs");
 const { hideBin } = require("yargs/helpers");
 
@@ -67,8 +64,16 @@ yargs(hideBin(process.argv))
   .help().argv;
 
 function startServer() {
+  const express = require("express");
+  const cors = require("cors");
+  const mongoose = require("mongoose");
+  const bodyParser = require("body-parser");
+  const http = require("http");
+  const { Server } = require("socket.io");
+  const mainRouter = require("./routes/main.router");
+
   const app = express();
-  const port = process.env.PORT || 3000;
+  const port = process.env.PORT || 3002;
 
   app.use(bodyParser.json());
   app.use(express.json());
